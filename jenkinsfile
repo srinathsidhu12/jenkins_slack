@@ -1,0 +1,32 @@
+pipeline {
+    agent { label 'slave1' }  // Runs on slave
+    environment {
+        APP_NAME = 'sample-java-app'
+    }
+    tools {
+        maven 'Maven 3.9.11'
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/spring-projects/spring-petclinic.git'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'mvn clean package -DskipTests'
+            }
+        }
+    }
+    post {
+        success {
+            echo "✅ Job succeeded!"
+            slackSend(channel: '#all-mynewworkspace', message: "✅ Job '${env.JOB_NAME}' build #${env.BUILD_NUMBER} succeeded!")
+        }
+        failure {
+            echo "❌ Job failed!"
+            slackSend(channel: '#all-mynewworkspace', message: "❌ Job '${env.JOB_NAME}' build #${env.BUILD_NUMBER} failed!")
+        }
+    }
+}
+
